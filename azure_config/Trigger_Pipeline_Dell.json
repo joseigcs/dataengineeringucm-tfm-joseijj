@@ -1,0 +1,33 @@
+{
+    "name": "Trigger_Pipeline_Dell",
+    "properties": {
+        "annotations": [],
+        "runtimeState": "Started",
+        "pipelines": [
+            {
+                "pipelineReference": {
+                    "referenceName": "Pipeline_Asset_Joseig",
+                    "type": "PipelineReference"
+                },
+                "parameters": {
+                    "asset": "dell",
+                    "ticker": "DELL"
+                }
+            }
+        ],
+        "type": "ScheduleTrigger",
+        "typeProperties": {
+            "recurrence": {
+                "frequency": "Week",
+                "interval": 1,
+                "startTime": "2024-09-14T09:00:00",
+                "timeZone": "Romance Standard Time",
+                "schedule": {
+                    "weekDays": [
+                        "Saturday"
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "name": "sparkpooljijj",
+    "location": "northeurope",
+    "tags": {
+        "owner": "joseijj",
+        "environment": "pro"
+    },
+    "properties": {
+        "autoPause": {
+            "enabled": true,
+            "delayInMinutes": 5
+        },
+        "autoScale": {
+            "enabled": false,
+            "maxNodeCount": 3,
+            "minNodeCount": 3
+        },
+        "nodeCount": 3,
+        "nodeSize": "Small",
+        "nodeSizeFamily": "MemoryOptimized",
+        "sparkVersion": "3.4",
+        "isComputeIsolationEnabled": false,
+        "sessionLevelPackagesEnabled": false,
+        "annotations": []
+    }
+}

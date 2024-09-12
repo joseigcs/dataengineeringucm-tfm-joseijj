@@ -1,0 +1,8 @@
+﻿NAME,TYPE,LOCATION,
+"Notification_pipeline_master","Logic app","West Europe"
+"Notification_pipeline_success","Logic app","West Europe"
+"nticmaster-jijj-dbr","Azure Databricks Service","West Europe"
+"nticmasterstg","Storage account","West Europe"
+"office365","API Connection","West Europe"
+"sparkpooljijj (synmde-jijj/sparkpooljijj)","Apache Spark pool","North Europe"
+"synmde-jijj","Synapse workspace","North Europe"

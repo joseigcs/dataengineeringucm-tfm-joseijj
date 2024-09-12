@@ -1,0 +1,318 @@
+{
+    "name": "Pipeline_Asset_Joseig",
+    "properties": {
+        "activities": [
+            {
+                "name": "RawToBronze",
+                "type": "SynapseNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebook": {
+                        "referenceName": "RawToBronze",
+                        "type": "NotebookReference"
+                    },
+                    "parameters": {
+                        "asset": {
+                            "value": {
+                                "value": "@pipeline().parameters.asset",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "ticker": {
+                            "value": {
+                                "value": "@pipeline().parameters.ticker",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        },
+                        "start_date": {
+                            "value": "2024-09-01",
+                            "type": "string"
+                        },
+                        "end_date": {
+                            "value": null,
+                            "type": "string"
+                        }
+                    },
+                    "snapshot": true,
+                    "sparkPool": {
+                        "referenceName": "sparkpooljijj",
+                        "type": "BigDataPoolReference"
+                    },
+                    "executorSize": "Small",
+                    "driverSize": "Small"
+                }
+            },
+            {
+                "name": "BronzeToSilver",
+                "type": "SynapseNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "RawToBronze",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebook": {
+                        "referenceName": "BronzeToSilver",
+                        "type": "NotebookReference"
+                    },
+                    "parameters": {
+                        "asset": {
+                            "value": {
+                                "value": "@pipeline().parameters.asset",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        }
+                    },
+                    "snapshot": true,
+                    "sparkPool": {
+                        "referenceName": "sparkpooljijj",
+                        "type": "BigDataPoolReference"
+                    },
+                    "executorSize": "Small",
+                    "driverSize": "Small"
+                }
+            },
+            {
+                "name": "SilverToGold",
+                "type": "SynapseNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "Get EPU data",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    },
+                    {
+                        "activity": "BronzeToSilver",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "notebook": {
+                        "referenceName": "SilverToGold",
+                        "type": "NotebookReference"
+                    },
+                    "parameters": {
+                        "asset": {
+                            "value": {
+                                "value": "@pipeline().parameters.asset",
+                                "type": "Expression"
+                            },
+                            "type": "string"
+                        }
+                    },
+                    "snapshot": true
+                }
+            },
+            {
+                "name": "Get EPU data",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "source": {
+                        "type": "ExcelSource",
+                        "storeSettings": {
+                            "type": "HttpReadSettings",
+                            "requestMethod": "GET"
+                        }
+                    },
+                    "sink": {
+                        "type": "ParquetSink",
+                        "storeSettings": {
+                            "type": "AzureBlobFSWriteSettings"
+                        },
+                        "formatSettings": {
+                            "type": "ParquetWriteSettings"
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                },
+                "inputs": [
+                    {
+                        "referenceName": "Excel_EPU",
+                        "type": "DatasetReference"
+                    }
+                ],
+                "outputs": [
+                    {
+                        "referenceName": "Parquet1",
+                        "type": "DatasetReference"
+                    }
+                ]
+            },
+            {
+                "name": "Notification_Error_Pipeline_Email",
+                "description": "Envía una notificación a ciertos emails si la pipeline falla con los motivos del fallo.",
+                "type": "WebHook",
+                "dependsOn": [
+                    {
+                        "activity": "RawToBronze",
+                        "dependencyConditions": [
+                            "Failed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://prod-71.westeurope.logic.azure.com:443/workflows/ccae03978f7a4a64a76118f1d90c6b38/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=RIbTdjiZITsTKegUjIaIYXd4oDhsVea9hVvXlkWm8bI",
+                    "method": "POST",
+                    "body": {
+                        "pipelineName": "@{pipeline().Pipeline}",
+                        "status": "@{activity('RawToBronze').Status}",
+                        "errorMessage": "@{activity('RawToBronze').Error.Message}"
+                    },
+                    "timeout": "00:00:30"
+                }
+            },
+            {
+                "name": "Notification_Error_Pipeline_Email_bts",
+                "description": "Envía una notificación a ciertos emails si la pipeline falla con los motivos del fallo.",
+                "type": "WebHook",
+                "dependsOn": [
+                    {
+                        "activity": "BronzeToSilver",
+                        "dependencyConditions": [
+                            "Failed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://prod-71.westeurope.logic.azure.com:443/workflows/ccae03978f7a4a64a76118f1d90c6b38/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=RIbTdjiZITsTKegUjIaIYXd4oDhsVea9hVvXlkWm8bI",
+                    "method": "POST",
+                    "body": {
+                        "pipelineName": "@{pipeline().Pipeline}",
+                        "status": "@{activity('BronzeToSilver').Status}",
+                        "errorMessage": "@{activity('BronzeToSilver').Error.Message}"
+                    },
+                    "timeout": "00:00:30"
+                }
+            },
+            {
+                "name": "Notification_Error_Pipeline_Email_bts_copy1",
+                "description": "Envía una notificación a ciertos emails si la pipeline falla con los motivos del fallo.",
+                "type": "WebHook",
+                "dependsOn": [
+                    {
+                        "activity": "SilverToGold",
+                        "dependencyConditions": [
+                            "Failed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://prod-71.westeurope.logic.azure.com:443/workflows/ccae03978f7a4a64a76118f1d90c6b38/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=RIbTdjiZITsTKegUjIaIYXd4oDhsVea9hVvXlkWm8bI",
+                    "method": "POST",
+                    "body": {
+                        "value": "{\n  \"pipelineName\": \"@{pipeline().Pipeline}\",\n  \"status\": \"@{activity('SilverToGold').output.status}\",\n  \"asset\": \"@{pipeline().parameters.asset}\",\n  \"ticker\": \"@{pipeline().parameters.ticker}\"\n}\n",
+                        "type": "Expression"
+                    },
+                    "timeout": "00:00:30"
+                }
+            },
+            {
+                "name": "Notification_Sucess_Pipeline_Emal",
+                "description": "Envía una notificación a ciertos emails si la pipeline finaliza con éxito.",
+                "type": "WebHook",
+                "dependsOn": [
+                    {
+                        "activity": "SilverToGold",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "url": "https://prod-233.westeurope.logic.azure.com:443/workflows/cf1b7c1483a04e74a2c694388996d9bc/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=R9EO7lnDBvsj9yXahE3cU8WsVX35LFGo4mCnkPoye14",
+                    "method": "POST",
+                    "body": {
+                        "pipelineName": "@{pipeline().Pipeline}",
+                        "status": "@{activity('SilverToGold').output.status}",
+                        "asset": "@{pipeline().parameters.asset}",
+                        "ticker": "@{pipeline().parameters.ticker}"
+                    },
+                    "timeout": "00:00:30"
+                }
+            }
+        ],
+        "parameters": {
+            "asset": {
+                "type": "string",
+                "defaultValue": "apple"
+            },
+            "ticker": {
+                "type": "string",
+                "defaultValue": "AAPL"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2024-09-10T15:44:55Z"
+    },
+    "type": "Microsoft.Synapse/workspaces/pipelines"
+}
