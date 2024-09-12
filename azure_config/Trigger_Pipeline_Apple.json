@@ -1,0 +1,34 @@
+{
+    "name": "Trigger_Pipeline_Apple",
+    "properties": {
+        "description": "Desencadenador de la pipeline completa del activo financiero Apple. Se ejecuta cada 7 días, todos los sábados una vez cerrada la bolsa.",
+        "annotations": [],
+        "runtimeState": "Started",
+        "pipelines": [
+            {
+                "pipelineReference": {
+                    "referenceName": "Pipeline_Asset_Joseig",
+                    "type": "PipelineReference"
+                },
+                "parameters": {
+                    "asset": "apple",
+                    "ticker": "AAPL"
+                }
+            }
+        ],
+        "type": "ScheduleTrigger",
+        "typeProperties": {
+            "recurrence": {
+                "frequency": "Week",
+                "interval": 1,
+                "startTime": "2024-09-14T09:00:00",
+                "timeZone": "Romance Standard Time",
+                "schedule": {
+                    "weekDays": [
+                        "Saturday"
+                    ]
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,72 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Enviar_correo_electrónico_(V2)": {
+                "inputs": {
+                    "body": {
+                        "Body": "<p class=\"editor-paragraph\"><b><strong class=\"editor-text-bold\" style=\"font-size: 20px;\">Atención!</strong></b></p><p class=\"editor-paragraph\">Hubo un error en la pipeline: @{triggerOutputs()['body']['pipelineName']}<br>Con el siguiente estado: @{triggerOutputs()['body']['status']}<br>El mensaje de error es el siguiente: @{triggerOutputs()['body']['errorMessage']}</p><br>",
+                        "Importance": "High",
+                        "Subject": "Error en la pipeline @{triggerOutputs()['body']['pipelineName']}",
+                        "To": "joseigcaas@gmail.com"
+                    },
+                    "host": {
+                        "connection": {
+                            "name": "@parameters('$connections')['office365']['connectionId']"
+                        }
+                    },
+                    "method": "post",
+                    "path": "/v2/Mail"
+                },
+                "runAfter": {},
+                "type": "ApiConnection"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "When_a_HTTP_request_is_received": {
+                "inputs": {
+                    "schema": {
+                        "properties": {
+                            "errorMessage": {
+                                "type": "string"
+                            },
+                            "pipelineName": {
+                                "type": "string"
+                            },
+                            "status": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "pipelineName",
+                            "status",
+                            "errorMessage"
+                        ],
+                        "type": "object"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "office365": {
+                    "connectionId": "/subscriptions/8df81e3d-357e-4cfe-96b9-5f4496bce54c/resourceGroups/ucm-nticmaster-rsg/providers/Microsoft.Web/connections/office365",
+                    "connectionName": "office365",
+                    "id": "/subscriptions/8df81e3d-357e-4cfe-96b9-5f4496bce54c/providers/Microsoft.Web/locations/westeurope/managedApis/office365"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+    "name": "HttpEPU",
+    "type": "Microsoft.Synapse/workspaces/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "HttpServer",
+        "typeProperties": {
+            "url": "https://www.policyuncertainty.com/media/US_Policy_Uncertainty_Data.xlsx",
+            "enableServerCertificateValidation": true,
+            "authenticationType": "Anonymous"
+        },
+        "connectVia": {
+            "referenceName": "AutoResolveIntegrationRuntime",
+            "type": "IntegrationRuntimeReference"
+        }
+    }
+}
